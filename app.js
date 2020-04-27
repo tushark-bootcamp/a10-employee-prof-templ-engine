@@ -10,6 +10,134 @@ const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
 
+//const generateTeamRoster = require("./readmefilegenerator");
+
+
+
+var teamSizes = {
+    noOfEngineers: 0,
+    noOfManagers: 0,
+    noOfInterns: 0
+};
+
+var teamStructure = {
+    engineer: {
+        role: "Engineer",
+        noOfEngineers: 0,
+        engineers: [
+            {
+                name: "",
+                id: "",
+                email: "",
+                gitHub: ""
+            }
+        ]
+
+    },
+    manager: {
+        role: "Manager",
+        noOfManagers: 0,
+        managers: [
+            {
+                name: "",
+                id: "",
+                email: "",
+                officeNumber: 0
+            }
+        ]
+
+    },
+    intern: {
+        role: "Intern",
+        noOfInterns: 0,
+        interns: [
+            {
+                name: "",
+                id: "",
+                email: "",
+                school: ""
+            }
+        ]
+
+    }
+};
+
+promptTeamSizes();
+
+const writeTeamRosterFileAsync = util.promisify(fs.writeFile);
+
+function promptTeamSizes() {
+
+    return inquirer.prompt([
+        {
+            type: "input",
+            name: "noOfEngineers",
+            message: "How many engineers do you have in your team"
+        },
+        {
+            type: "input",
+            name: "noOfInterns",
+            message: "How many interns do you have in your team",
+        }])
+}
+
+function buildTeamSizes(teamSizeData) {
+    teamSizes.noOfEngineers = teamSizeData.noOfEngineers;
+    teamSizes.noOfInterns = teamSizeData.noOfInterns;
+}
+
+function promptEngineerInfo() {
+
+    return inquirer.prompt([
+        {
+            type: "input",
+            name: "nameEngineer",
+            message: "Please provide the name of the engineer"
+        },
+        {
+            type: "input",
+            name: "idEngineer",
+            message: "Please provide the ID of the engineer",
+        },
+        {
+            type: "input",
+            name: "emailEngineer",
+            message: "Please provide the emailID of the engineer",
+        },
+        {
+            type: "input",
+            name: "gitHub",
+            message: "Please provide the github URL of the engineer",
+        }
+    ])
+}
+
+function buildEngineerProfile(promptEngineerData) {
+    const engineer = new Engineer(promptEngineerData.nameEngineer,
+        promptEngineerData.idEngineer,
+        promptEngineerData.emailEngineer,
+        promptEngineerData.gitHub);
+}
+
+function buildEngnTeam(promptData) {
+    for (var i = 0; i < teamSizes.noOfEngineers; i++) {
+        promptEngineerInfo();
+    }
+}
+
+promptTeamStructure()
+    .then(function (data) {
+        const readme = buildTeamStructure(data);
+        return writeTeamRosterFileAsync("team.html", team);
+    })
+    .then(function () {
+        console.log("Successfully wrote to readme.md");
+    })
+    .catch(function (err) {
+        console.log(err);
+    });
+
+
 
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
