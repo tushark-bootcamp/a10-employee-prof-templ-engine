@@ -24,7 +24,12 @@
   }
 
   .manager-card-header {
-    @extend .card-header;
+    /*@extend .card-header;*/
     background-color: fuchsia;
+    color: cornsilk;
+  }
+
+  .card-header-engineer {
+    background-color: dodgerblue;
     color: cornsilk;
   }

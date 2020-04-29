@@ -9,81 +9,89 @@ const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
-
-//const generateTeamRoster = require("./readmefilegenerator");
-
+const util = require("util");
 
 
-var teamSizes = {
-    noOfEngineers: 0,
-    noOfManagers: 0,
-    noOfInterns: 0
-};
-
-var teamStructure = {
-    engineer: {
-        role: "Engineer",
-        noOfEngineers: 0,
-        engineers: [
-            {
-                name: "",
-                id: "",
-                email: "",
-                gitHub: ""
-            }
-        ]
-
-    },
-    manager: {
-        role: "Manager",
-        noOfManagers: 0,
-        managers: [
-            {
-                name: "",
-                id: "",
-                email: "",
-                officeNumber: 0
-            }
-        ]
-
-    },
-    intern: {
-        role: "Intern",
-        noOfInterns: 0,
-        interns: [
-            {
-                name: "",
-                id: "",
-                email: "",
-                school: ""
-            }
-        ]
-
-    }
-};
-
-promptTeamSizes();
+// Stores the employees - Manager, engineers and interns
+var employees = [];
 
 const writeTeamRosterFileAsync = util.promisify(fs.writeFile);
 
-function promptTeamSizes() {
+async function buildTeam() {
+    const responseMgrInfo = await promptEmployeeInfo("manager");
+    const officeNoInfo = await promptManagerInfo();
+    const manager = new Manager(responseMgrInfo.nameOfEmployee, responseMgrInfo.idOfEmployee, responseMgrInfo.emailOfEmployee, officeNoInfo.officeNumber);
+    employees.push(manager);
+    var loop = true;
+    while (loop) {
+        const roleInfo = await promptForEmployeeRole();
+        const role = roleInfo.employeeRole;
+        const employeeInfo = await promptEmployeeInfo(role);
+        if (role === "engineer") {
+            const engineerInfo = await promptEngineerInfo();
+            const engineer = new Engineer(employeeInfo.nameOfEmployee, employeeInfo.idOfEmployee, employeeInfo.emailOfEmployee, engineerInfo.github);
+            employees.push(engineer);
+        } else {
+            const internInfo = await promptInternInfo();
+            const intern = new Engineer(employeeInfo.nameOfEmployee, employeeInfo.idOfEmployee, employeeInfo.emailOfEmployee, internInfo.school);
+            employees.push(intern);
+        }
+        /// logic to add more employees
+        const addEmployee = await promptAddMoreEmployees();
+        const addMoreEmployees = addEmployee.addMore;
+        console.log("Add more employees? " + addMoreEmployees);
+        if(addMoreEmployees === "No") {
+            loop = false;
+            break;
+        }
+    }
+}
+
+function promptForEmployeeRole() {
+
+    return inquirer.prompt([
+        {
+            type: "list",
+            name: "employeeRole",
+            message: "Select the role of employee",
+            choices: [
+                "engineer",
+                "intern"
+            ]
+        }
+    ]);
+}
+
+function promptEmployeeInfo(employeeRole) {
 
     return inquirer.prompt([
         {
             type: "input",
-            name: "noOfEngineers",
-            message: "How many engineers do you have in your team"
+            name: "nameOfEmployee",
+            message: "Enter the name of " + employeeRole
         },
         {
             type: "input",
-            name: "noOfInterns",
-            message: "How many interns do you have in your team",
-        }])
+            name: "idOfEmployee",
+            message: "Provide employeeID of the " + employeeRole
+        },
+        {
+            type: "input",
+            name: "emailOfEmployee",
+            message: "Provide the email ID of the " + employeeRole
+        }
+    ]);
 }
 
-function buildTeamSizes(teamSizeData) {
-    teamSizes.noOfEngineers = teamSizeData.noOfEngineers;
-    teamSizes.noOfInterns = teamSizeData.noOfInterns;
+function promptManagerInfo() {
+
+    return inquirer.prompt([
+        {
+            type: "input",
+            name: "officeNumber",
+            message: "Provide office number of the manager",
+        }
+    ]);
 }
 
 function promptEngineerInfo() {
@@ -91,51 +99,57 @@ function promptEngineerInfo() {
     return inquirer.prompt([
         {
             type: "input",
-            name: "nameEngineer",
-            message: "Please provide the name of the engineer"
-        },
-        {
-            type: "input",
-            name: "idEngineer",
-            message: "Please provide the ID of the engineer",
-        },
-        {
-            type: "input",
-            name: "emailEngineer",
-            message: "Please provide the emailID of the engineer",
-        },
-        {
-            type: "input",
-            name: "gitHub",
-            message: "Please provide the github URL of the engineer",
+            name: "github",
+            message: "Provide github ID of the engineer",
         }
-    ])
+    ]);
 }
 
-function buildEngineerProfile(promptEngineerData) {
-    const engineer = new Engineer(promptEngineerData.nameEngineer,
-        promptEngineerData.idEngineer,
-        promptEngineerData.emailEngineer,
-        promptEngineerData.gitHub);
+function promptInternInfo() {
+
+    return inquirer.prompt([
+        {
+            type: "input",
+            name: "school",
+            message: "Provide school of the intern",
+        }
+    ]);
 }
 
-function buildEngnTeam(promptData) {
-    for (var i = 0; i < teamSizes.noOfEngineers; i++) {
-        promptEngineerInfo();
+function promptAddMoreEmployees() {
+
+    return inquirer.prompt([
+        {
+            type: "list",
+            name: "addMore",
+            message: "Do you want to add more employees?",
+            choices: [
+                "Yes",
+                "No"
+            ]
+        }
+    ]);
+}
+
+async function generateTeamProfile() {
+    console.log("hi!! generating team profile");
+    try {
+      //const teamSizeData = await promptTeamSizes();
+      await buildTeam();
+      console.log("employees.length: " + employees.length);
+      const html = render(employees);
+          
+     await writeFileAsync("team.html", html);
+  
+      console.log("Successfully wrote to team.html");
+    } catch (err) {
+      console.log(err);
     }
-}
+  }
 
-promptTeamStructure()
-    .then(function (data) {
-        const readme = buildTeamStructure(data);
-        return writeTeamRosterFileAsync("team.html", team);
-    })
-    .then(function () {
-        console.log("Successfully wrote to readme.md");
-    })
-    .catch(function (err) {
-        console.log(err);
-    });
+  generateTeamProfile();
+
+
 
 
 
