@@ -15,35 +15,39 @@ const util = require("util");
 // Stores the employees - Manager, engineers and interns
 var employees = [];
 
-const writeTeamRosterFileAsync = util.promisify(fs.writeFile);
+const writeFileAsync = util.promisify(fs.writeFile);
 
 async function buildTeam() {
-    const responseMgrInfo = await promptEmployeeInfo("manager");
+    // Collect manager details
+    const responseMgrInfo = await promptEmployeeInfo("manager", "");
     const officeNoInfo = await promptManagerInfo();
     const manager = new Manager(responseMgrInfo.nameOfEmployee, responseMgrInfo.idOfEmployee, responseMgrInfo.emailOfEmployee, officeNoInfo.officeNumber);
     employees.push(manager);
-    var loop = true;
-    while (loop) {
+    // Loop in to collect employee details comprising engineers and interns
+    var iteration = 0;
+    while (true) {
+        // suffix is generated to create variations
+        var suffix = iteration === 0 ? "" : "-" + iteration;
         const roleInfo = await promptForEmployeeRole();
         const role = roleInfo.employeeRole;
-        const employeeInfo = await promptEmployeeInfo(role);
+        const employeeInfo = await promptEmployeeInfo(role, suffix);
         if (role === "engineer") {
-            const engineerInfo = await promptEngineerInfo();
+            const engineerInfo = await promptEngineerInfo(suffix);
             const engineer = new Engineer(employeeInfo.nameOfEmployee, employeeInfo.idOfEmployee, employeeInfo.emailOfEmployee, engineerInfo.github);
             employees.push(engineer);
         } else {
-            const internInfo = await promptInternInfo();
-            const intern = new Engineer(employeeInfo.nameOfEmployee, employeeInfo.idOfEmployee, employeeInfo.emailOfEmployee, internInfo.school);
+            const internInfo = await promptInternInfo(suffix);
+            const intern = new Intern(employeeInfo.nameOfEmployee, employeeInfo.idOfEmployee, employeeInfo.emailOfEmployee, internInfo.school);
             employees.push(intern);
         }
         /// logic to add more employees
         const addEmployee = await promptAddMoreEmployees();
         const addMoreEmployees = addEmployee.addMore;
         console.log("Add more employees? " + addMoreEmployees);
-        if(addMoreEmployees === "No") {
-            loop = false;
+        if (addMoreEmployees === "No") {
             break;
         }
+        iteration++;
     }
 }
 
@@ -62,23 +66,41 @@ function promptForEmployeeRole() {
     ]);
 }
 
-function promptEmployeeInfo(employeeRole) {
-
+function promptEmployeeInfo(employeeRole, suffix) {
+    var defEmployeeName;
+    var defEmployeeId;
+    var defEmailId;
+    if (employeeRole === "manager") { 
+        defEmployeeName = "John Smith" + suffix;
+        defEmployeeId = "12435687";
+        defEmailId = "john" + suffix + "@" + employeeRole + ".com";
+    } else if (employeeRole === "engineer") {
+        defEmployeeName = "Kieth Turner" + suffix;
+        defEmployeeId = "476435687" + suffix;
+        defEmailId = "kieth" + suffix + "@" + employeeRole + ".com";
+    }else {
+        defEmployeeName = "Chris Maker" + suffix;
+        defEmployeeId = "87788656" + suffix;
+        defEmailId = "chris" + suffix + "@" + employeeRole + ".com";
+    }
     return inquirer.prompt([
         {
             type: "input",
             name: "nameOfEmployee",
+            default: defEmployeeName,
             message: "Enter the name of " + employeeRole
         },
         {
             type: "input",
             name: "idOfEmployee",
+            default: defEmployeeId,
             message: "Provide employeeID of the " + employeeRole
         },
         {
             type: "input",
             name: "emailOfEmployee",
-            message: "Provide the email ID of the " + employeeRole
+            default: defEmailId,
+            message: "Provide email ID of the " + employeeRole
         }
     ]);
 }
@@ -89,28 +111,31 @@ function promptManagerInfo() {
         {
             type: "input",
             name: "officeNumber",
+            default: "4545",
             message: "Provide office number of the manager",
         }
     ]);
 }
 
-function promptEngineerInfo() {
+function promptEngineerInfo(suffix) {
 
     return inquirer.prompt([
         {
             type: "input",
             name: "github",
+            default: "bootcamp" + suffix,
             message: "Provide github ID of the engineer",
         }
     ]);
 }
 
-function promptInternInfo() {
+function promptInternInfo(suffix) {
 
     return inquirer.prompt([
         {
             type: "input",
             name: "school",
+            default: "USYD"  + suffix,
             message: "Provide school of the intern",
         }
     ]);
@@ -134,23 +159,20 @@ function promptAddMoreEmployees() {
 async function generateTeamProfile() {
     console.log("hi!! generating team profile");
     try {
-      //const teamSizeData = await promptTeamSizes();
-      await buildTeam();
-      console.log("employees.length: " + employees.length);
-      const html = render(employees);
-          
-     await writeFileAsync("team.html", html);
-  
-      console.log("Successfully wrote to team.html");
+        //const teamSizeData = await promptTeamSizes();
+        await buildTeam();
+        console.log("employees.length: " + employees.length);
+        const html = render(employees);
+
+        await writeFileAsync("team.html", html);
+
+        console.log("Successfully wrote to team.html");
     } catch (err) {
-      console.log(err);
+        console.log(err);
     }
-  }
+}
 
-  generateTeamProfile();
-
-
-
+generateTeamProfile();
 
 
 // Write code to use inquirer to gather information about the development team members,
