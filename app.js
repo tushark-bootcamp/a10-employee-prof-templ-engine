@@ -25,7 +25,8 @@ async function buildTeam() {
     employees.push(manager);
     // Loop in to collect employee details comprising engineers and interns
     var iteration = 0;
-    while (true) {
+    var addMoreMembers = true;
+    while (addMoreMembers) {
         // suffix is generated to create variations
         var suffix = iteration === 0 ? "" : "-" + iteration;
         const roleInfo = await promptForEmployeeRole();
@@ -45,7 +46,8 @@ async function buildTeam() {
         const addMoreEmployees = addEmployee.addMore;
         console.log("Add more employees? " + addMoreEmployees);
         if (addMoreEmployees === "No") {
-            break;
+            addMoreMembers = false;
+            //break;
         }
         iteration++;
     }
@@ -70,7 +72,7 @@ function promptEmployeeInfo(employeeRole, suffix) {
     var defEmployeeName;
     var defEmployeeId;
     var defEmailId;
-    if (employeeRole === "manager") { 
+    if (employeeRole === "manager") {
         defEmployeeName = "John Smith" + suffix;
         defEmployeeId = "12435687";
         defEmailId = "john" + suffix + "@" + employeeRole + ".com";
@@ -78,7 +80,7 @@ function promptEmployeeInfo(employeeRole, suffix) {
         defEmployeeName = "Kieth Turner" + suffix;
         defEmployeeId = "476435687" + suffix;
         defEmailId = "kieth" + suffix + "@" + employeeRole + ".com";
-    }else {
+    } else {
         defEmployeeName = "Chris Maker" + suffix;
         defEmployeeId = "87788656" + suffix;
         defEmailId = "chris" + suffix + "@" + employeeRole + ".com";
@@ -135,7 +137,7 @@ function promptInternInfo(suffix) {
         {
             type: "input",
             name: "school",
-            default: "USYD"  + suffix,
+            default: "USYD" + suffix,
             message: "Provide school of the intern",
         }
     ]);
@@ -164,8 +166,11 @@ async function generateTeamProfile() {
         console.log("employees.length: " + employees.length);
         const html = render(employees);
 
-        await writeFileAsync("team.html", html);
-
+        if (!fs.existsSync("output")) {
+            console.log("output directory does not exist");
+            await fs.mkdirSync("output");
+        }
+        await writeFileAsync("output/team.html", html);
         console.log("Successfully wrote to team.html");
     } catch (err) {
         console.log(err);
