@@ -1,5 +1,5 @@
 # a10-employee-prof-templ-engine
-  [![Generic badge](https://img.shields.io/badge/GoodReadme-Generator-green.svg)](https://github.com/tushark-bootcamp/a10-employee-prof-templ-engine)
+  [![Generic badge](https://img.shields.io/badge/TeamProfile-Generator-green.svg)](https://github.com/tushark-bootcamp/a10-employee-prof-templ-engine)
   
   ## Description
   Software engineering team generator command line application.
