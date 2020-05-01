@@ -34,4 +34,4 @@
 ![image](https://github.com/tushark-bootcamp/a10-employee-prof-templ-engine/blob/master/employee-profiles.png)
 
   ## Page 2 - Snapshot of the team profile html page generated using the CLI tool
-![image](https://github.com/tushark-bootcamp/a10-employee-prof-templ-engine/blob/master/employee-profiles.png)
+![image](https://github.com/tushark-bootcamp/a10-employee-prof-templ-engine/blob/master/employee-profiles-2.png)
